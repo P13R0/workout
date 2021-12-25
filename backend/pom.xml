@@ -19,6 +19,7 @@
 
     <vertx.version>4.2.2</vertx.version>
     <junit-jupiter.version>5.7.0</junit-jupiter.version>
+    <rest-assured.version>4.4.0</rest-assured.version>
 
     <main.verticle>it.anesin.workout.MainVerticle</main.verticle>
     <launcher.class>io.vertx.core.Launcher</launcher.class>
@@ -74,6 +75,12 @@
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
       <version>${junit-jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>${rest-assured.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
