@@ -11,7 +11,7 @@ import java.io.File
 class MainVerticle : AbstractVerticle() {
 
   override fun start(startPromise: Promise<Void>) {
-    val config = ConfigFactory.parseFile(File("app.conf"))
+    val config = ConfigFactory.parseFile(File("backend/app.conf"))
     val adminCredentials = config.getConfig("admin")
 
     val router = Router.router(vertx)
