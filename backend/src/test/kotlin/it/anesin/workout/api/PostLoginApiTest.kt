@@ -46,4 +46,14 @@ internal class PostLoginApiTest {
     verify { adminConfig.getString("username") }
     verify { adminConfig.getString("password") }
   }
+
+  @Test
+  internal fun `should return an auth error if username or password are wrong`() {
+    RestAssured.given()
+      .port(port)
+      .contentType(ContentType.JSON)
+      .body(JsonObject().put("username", "wrongUsername").put("password", "wrongPassword").toString())
+      .then()
+      .statusCode(403)
+  }
 }

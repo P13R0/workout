@@ -25,7 +25,7 @@ class PostLoginApi(router: Router, private val adminCredentials: Config) : Handl
         .end(JsonObject().put("token", "aToken").toBuffer())
     }
     else {
-      context.response().end()
+      context.response().setStatusCode(403)
     }
   }
 }
