@@ -15,7 +15,7 @@ class PostLoginApi(router: Router, private val adminCredentials: Config) : Handl
   }
 
   override fun handle(context: RoutingContext) {
-    val body = context.bodyAsJson
+    val body = context.bodyAsJson ?: JsonObject()
     val username = body.getString("username")
     val password = body.getString("password")
 
@@ -25,7 +25,7 @@ class PostLoginApi(router: Router, private val adminCredentials: Config) : Handl
         .end(JsonObject().put("token", "aToken").toBuffer())
     }
     else {
-      context.response().setStatusCode(403)
+      context.response().setStatusCode(403).end("authentication failed")
     }
   }
 }

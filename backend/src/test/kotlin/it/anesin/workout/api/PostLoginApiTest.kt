@@ -53,6 +53,7 @@ internal class PostLoginApiTest {
       .port(port)
       .contentType(ContentType.JSON)
       .body(JsonObject().put("username", "wrongUsername").put("password", "wrongPassword").toString())
+      .post("/api/login")
       .then()
       .statusCode(403)
   }
