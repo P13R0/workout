@@ -23,8 +23,14 @@ class MainVerticle : AbstractVerticle() {
       .createHttpServer()
       .requestHandler(router)
       .listen(port())
-      .onSuccess { server -> log.info("Workout backend server is listening on port ${server.actualPort()}") }
-      .onFailure { log.error("Workout backend server failed to start", it) }
+      .onSuccess { server ->
+        println("Workout backend server is listening on port ${server.actualPort()}")
+        log.info("Workout backend server is listening on port ${server.actualPort()}")
+      }
+      .onFailure {
+        println("Workout backend server failed to start $it")
+        log.error("Workout backend server failed to start", it)
+      }
   }
 }
 
