@@ -1,9 +1,5 @@
 package it.anesin.workout.api
 
-import com.typesafe.config.Config
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.vertx.core.Vertx
@@ -19,17 +15,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 @ExtendWith(VertxExtension::class)
 internal class PostLoginApiTest {
   private val port = 9999
-  private val adminConfig = mockk<Config>()
 
   @BeforeEach
   internal fun setUp(vertx: Vertx, test: VertxTestContext) {
     val router = Router.router(vertx).errorHandler(500) { it.failure().printStackTrace() }
     vertx.createHttpServer().requestHandler(router).listen(port, test.succeedingThenComplete())
 
-    every { adminConfig.getString("username") } returns "aUsername"
-    every { adminConfig.getString("password") } returns "aPassword"
-
-    PostLoginApi(router, adminConfig)
+    PostLoginApi(router, "aUsername", "aPassword")
   }
 
   @Test
@@ -42,9 +34,6 @@ internal class PostLoginApiTest {
       .then()
       .statusCode(200)
       .body("token", CoreMatchers.`is`("aToken"))
-
-    verify { adminConfig.getString("username") }
-    verify { adminConfig.getString("password") }
   }
 
   @Test

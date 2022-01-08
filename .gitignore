@@ -1,5 +1,5 @@
 ### Config ###
-app.conf
+config.properties
 
 ### Vert.x ###
 .vertx/
