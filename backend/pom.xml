@@ -11,7 +11,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <kotlin.version>1.5.10</kotlin.version>
+    <kotlin.version>1.6.10</kotlin.version>
 
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
@@ -20,7 +20,7 @@
 
     <vertx.version>4.2.2</vertx.version>
 
-    <junit-jupiter.version>5.7.0</junit-jupiter.version>
+    <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <rest-assured.version>4.4.0</rest-assured.version>
     <mockk.version>1.12.1</mockk.version>
 
@@ -103,7 +103,7 @@
         <artifactId>kotlin-maven-plugin</artifactId>
         <version>${kotlin.version}</version>
         <configuration>
-          <jvmTarget>11</jvmTarget>
+          <jvmTarget>16</jvmTarget>
         </configuration>
         <executions>
           <execution>
@@ -167,9 +167,9 @@
         <artifactId>heroku-maven-plugin</artifactId>
         <version>${heroku-plugin.version}</version>
         <configuration>
-          <jdkVersion>11</jdkVersion>
+          <jdkVersion>16</jdkVersion>
           <processTypes>
-            <web>java $JAVA_OPTS -Dhttp.port=$PORT -jar target/workout-1.0.0-SNAPSHOT-fat.jar</web>
+            <web>java $JAVA_OPTS -D http.port=$PORT -jar target/workout-1.0.0-SNAPSHOT-fat.jar</web>
           </processTypes>
         </configuration>
       </plugin>
