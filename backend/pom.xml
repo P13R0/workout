@@ -11,14 +11,13 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <kotlin.version>1.6.10</kotlin.version>
-
     <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <exec-maven-plugin.version>3.0.0</exec-maven-plugin.version>
     <heroku-plugin.version>3.0.4</heroku-plugin.version>
 
     <vertx.version>4.2.2</vertx.version>
+    <kotlin.version>1.6.10</kotlin.version>
 
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <rest-assured.version>4.4.0</rest-assured.version>
@@ -28,34 +27,21 @@
     <launcher.class>io.vertx.core.Launcher</launcher.class>
   </properties>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>io.vertx</groupId>
-        <artifactId>vertx-stack-depchain</artifactId>
-        <version>${vertx.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-mongo-client</artifactId>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-lang-kotlin</artifactId>
+      <version>${vertx.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
@@ -66,6 +52,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-junit5</artifactId>
+      <version>${vertx.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -140,8 +127,7 @@
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
-              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar
-              </outputFile>
+              <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
             </configuration>
           </execution>
         </executions>
@@ -169,7 +155,7 @@
         <configuration>
           <jdkVersion>16</jdkVersion>
           <processTypes>
-            <web>java $JAVA_OPTS -D http.port=$PORT -jar target/workout-1.0.0-SNAPSHOT-fat.jar</web>
+            <web>java $JAVA_OPTS -Dhttp.port=$PORT -jar target/workout-1.0.0-SNAPSHOT-fat.jar</web>
           </processTypes>
         </configuration>
       </plugin>
