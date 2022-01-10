@@ -1,9 +1,7 @@
 package it.anesin.workout.api
 
 import io.restassured.RestAssured
-import io.restassured.http.ContentType
 import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
@@ -21,29 +19,16 @@ internal class PostLoginApiTest {
     val router = Router.router(vertx).errorHandler(500) { it.failure().printStackTrace() }
     vertx.createHttpServer().requestHandler(router).listen(port, test.succeedingThenComplete())
 
-    PostLoginApi(router, "aUsername", "aPassword")
+    PostLoginApi(router)
   }
 
   @Test
-  internal fun `should login the admin and return a jwt`() {
+  internal fun `should return a jwt`() {
     RestAssured.given()
       .port(port)
-      .contentType(ContentType.JSON)
-      .body(JsonObject().put("username", "aUsername").put("password", "aPassword").toString())
       .post("/api/login")
       .then()
       .statusCode(200)
       .body("token", CoreMatchers.`is`("aToken"))
-  }
-
-  @Test
-  internal fun `should return an auth error if username or password are wrong`() {
-    RestAssured.given()
-      .port(port)
-      .contentType(ContentType.JSON)
-      .body(JsonObject().put("username", "wrongUsername").put("password", "wrongPassword").toString())
-      .post("/api/login")
-      .then()
-      .statusCode(403)
   }
 }
