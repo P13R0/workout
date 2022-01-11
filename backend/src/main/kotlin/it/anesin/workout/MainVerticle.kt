@@ -6,7 +6,10 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
+import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.auth.mongo.MongoAuthentication
 import io.vertx.ext.auth.mongo.MongoAuthenticationOptions
 import io.vertx.ext.auth.mongo.MongoAuthorizationOptions
@@ -40,12 +43,17 @@ class MainVerticle : AbstractVerticle() {
         .onFailure { log.error("Admin user creation failed", it)}
     }
 
+    val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
+    val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
+    val jwtAuthenticationOptions = JWTAuthOptions().addPubSecKey(publicKey).addPubSecKey(privateKey)
+    val jwtAuthentication = JWTAuth.create(vertx, jwtAuthenticationOptions)
+
     val router = Router.router(vertx)
 
     val basicAuthHandler = BasicAuthHandler.create(mongoAuthentication)
     router.route("/api/login").handler(basicAuthHandler).failureHandler { it.response().setStatusCode(401).end("Authentication failed") }
 
-    PostLoginApi(router)
+    PostLoginApi(router, jwtAuthentication)
 
     vertx
       .createHttpServer()
