@@ -19,10 +19,13 @@
     <vertx.version>4.2.3</vertx.version>
     <kotlin.version>1.6.10</kotlin.version>
     <slf4j.version>2.0.0-alpha0</slf4j.version>
+    <jackson.version>2.10.0.pr1</jackson.version>
 
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <rest-assured.version>4.4.0</rest-assured.version>
     <mockk.version>1.12.1</mockk.version>
+    <testcontainers.version>1.16.2</testcontainers.version>
+    <assertj.version>3.15.0</assertj.version>
 
     <main.verticle>it.anesin.workout.MainVerticle</main.verticle>
     <launcher.class>io.vertx.core.Launcher</launcher.class>
@@ -69,6 +72,11 @@
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>io.vertx</groupId>
@@ -98,6 +106,18 @@
       <groupId>io.mockk</groupId>
       <artifactId>mockk</artifactId>
       <version>${mockk.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${testcontainers.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
