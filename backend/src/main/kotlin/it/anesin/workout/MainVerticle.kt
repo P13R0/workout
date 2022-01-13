@@ -8,22 +8,25 @@ import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
+import io.vertx.ext.auth.authorization.RoleBasedAuthorization
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
-import io.vertx.ext.auth.mongo.MongoAuthentication
-import io.vertx.ext.auth.mongo.MongoAuthenticationOptions
-import io.vertx.ext.auth.mongo.MongoAuthorizationOptions
-import io.vertx.ext.auth.mongo.MongoUserUtil
+import io.vertx.ext.auth.mongo.*
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BasicAuthHandler
+import io.vertx.ext.web.handler.JWTAuthHandler
 import it.anesin.workout.api.PostLoginApi
+import it.anesin.workout.api.PostTrainersApi
+import it.anesin.workout.db.MongoTrainers
 import java.io.FileNotFoundException
 import java.util.*
 
 class MainVerticle : AbstractVerticle() {
 
   override fun start(startPromise: Promise<Void>) {
+    JsonMapper.setPreferences()
+
     val prop = Properties()
     val inputStream = javaClass.classLoader.getResourceAsStream("config.properties")
 
@@ -34,14 +37,40 @@ class MainVerticle : AbstractVerticle() {
     val mongoAuthenticationOptions = MongoAuthenticationOptions().setCollectionName("users")
     val mongoAuthentication = MongoAuthentication.create(mongoClient, mongoAuthenticationOptions)
     val mongoAuthorizationOptions = MongoAuthorizationOptions()
+    val mongoAuthorization = MongoAuthorization.create("provider", mongoClient, mongoAuthorizationOptions)
     val mongoUserUtil = MongoUserUtil.create(mongoClient, mongoAuthenticationOptions, mongoAuthorizationOptions)
 
     val adminCredentials = UsernamePasswordCredentials(prop.getProperty("admin_username"), prop.getProperty("admin_password"))
-    mongoAuthentication.authenticate(adminCredentials).onFailure {
-      mongoUserUtil.createUser(adminCredentials.username, adminCredentials.password)
-        .onSuccess { log.info("Admin user created") }
-        .onFailure { log.error("Admin user creation failed", it)}
-    }
+    mongoAuthentication.authenticate(adminCredentials)
+      .onSuccess { user ->
+        mongoAuthorization.getAuthorizations(user)
+          .onSuccess {
+            if (!RoleBasedAuthorization.create("admin").match(user)) {
+              mongoUserUtil.createUserRolesAndPermissions(user.principal().getString("username"), listOf("admin"), listOf())
+                .onSuccess { log.info("Added role to Admin") }
+                .onFailure { log.error("Add role to Admin failed") }
+            }
+          }
+
+      }
+      .onFailure {
+        mongoUserUtil.createUser(adminCredentials.username, adminCredentials.password)
+          .onSuccess {
+            log.info("Admin user created")
+            mongoAuthentication.authenticate(adminCredentials)
+              .onSuccess { user ->
+                mongoAuthorization.getAuthorizations(user)
+                  .onSuccess {
+                    if (!RoleBasedAuthorization.create("admin").match(user)) {
+                      mongoUserUtil.createUserRolesAndPermissions(user.principal().getString("username"), listOf("admin"), listOf())
+                        .onSuccess { log.info("Added role to Admin") }
+                        .onFailure { log.error("Add role to Admin failed") }
+                    }
+                  }
+              }
+          }
+          .onFailure { log.error("Admin user creation failed", it) }
+      }
 
     val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
     val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
@@ -49,11 +78,22 @@ class MainVerticle : AbstractVerticle() {
     val jwtAuthentication = JWTAuth.create(vertx, jwtAuthenticationOptions)
 
     val router = Router.router(vertx)
+      .errorHandler(401) { context -> log.warn("Unauthenticated call received: ${context.request().method()} ${context.request().uri()}") }
+      .errorHandler(500) { context -> log.error("Internal Server Error", context.failure()) }
 
     val basicAuthHandler = BasicAuthHandler.create(mongoAuthentication)
-    router.route("/api/login").handler(basicAuthHandler).failureHandler { it.response().setStatusCode(401).end("Authentication failed") }
+    router.route("/api/login").handler(basicAuthHandler)
+
+    val jwtAuthHandler = JWTAuthHandler.create(jwtAuthentication)
+    router.route("/api/*").handler(jwtAuthHandler)
+
+    val uuidIdGenerator = UUIDIdGenerator()
+    val utcDateTimeGenerator = UTCDateTimeGenerator()
+
+    val trainers = MongoTrainers(mongoClient)
 
     PostLoginApi(router, jwtAuthentication)
+    PostTrainersApi(router, trainers, uuidIdGenerator, utcDateTimeGenerator)
 
     vertx
       .createHttpServer()
