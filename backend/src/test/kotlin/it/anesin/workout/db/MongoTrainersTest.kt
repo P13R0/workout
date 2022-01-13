@@ -1,18 +1,14 @@
 package it.anesin.workout.db
 
 import io.vertx.core.Vertx
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.junit5.VertxTestContext
-import it.anesin.workout.domain.Trainer
-import org.junit.jupiter.api.Assertions.*
+import it.anesin.workout.TestFactory.trainerWith
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import org.testcontainers.junit.jupiter.Testcontainers
-import org.assertj.core.api.Assertions.assertThat
-import java.time.Instant
-import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -40,6 +36,4 @@ internal class MongoTrainersTest : MongoDbTest() {
       }
       .onFailure(test::failNow)
   }
-
-  private fun trainerWith(id: UUID) = Trainer(id, "anEmail", "aName", setOf(), LocalDateTime.now())
 }
