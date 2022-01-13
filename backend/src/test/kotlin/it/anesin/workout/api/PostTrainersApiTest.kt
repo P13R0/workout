@@ -7,15 +7,20 @@ import io.restassured.RestAssured
 import io.vertx.core.Future.succeededFuture
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import io.vertx.ext.auth.User
+import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 import io.vertx.ext.web.Router
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import it.anesin.workout.DateTimeGenerator
-import it.anesin.workout.IdGenerator
+import it.anesin.workout.provider.DateTimeProvider
+import it.anesin.workout.provider.IdGenerator
 import it.anesin.workout.JsonExtension
 import it.anesin.workout.TestFactory.trainerWith
 import it.anesin.workout.db.Trainers
 import it.anesin.workout.domain.Trainer
+import it.anesin.workout.provider.AuthProvider
+import it.anesin.workout.provider.UserRole
+import it.anesin.workout.provider.UserRole.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -27,22 +32,24 @@ internal class PostTrainersApiTest {
   private val port = 9991
   private val trainers = mockk<Trainers>()
   private val idGenerator = mockk<IdGenerator>()
-  private val dateTimeGenerator = mockk<DateTimeGenerator>()
+  private val dateTimeProvider = mockk<DateTimeProvider>()
+  private val authProvider = mockk<AuthProvider>()
 
   @BeforeEach
   internal fun setUp(vertx: Vertx, test: VertxTestContext) {
     val router = Router.router(vertx).errorHandler(500) { it.failure().printStackTrace() }
     vertx.createHttpServer().requestHandler(router).listen(port, test.succeedingThenComplete())
 
-    PostTrainersApi(router, trainers, idGenerator, dateTimeGenerator)
+    PostTrainersApi(router, trainers, idGenerator, dateTimeProvider, authProvider)
   }
 
   @Test
   internal fun `should add a new trainer`() {
+    every { authProvider.addUser(any(), any(), any()) } returns succeededFuture(User.create(JsonObject()))
     every { trainers.find(any()) } returns succeededFuture()
     every { trainers.add(any()) } returns succeededFuture()
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
-    every { dateTimeGenerator.now() } returns LocalDateTime.of(2022, 10,20,6,0)
+    every { dateTimeProvider.now() } returns LocalDateTime.of(2022, 10,20,6,0)
 
     RestAssured.given()
       .port(port)
@@ -51,6 +58,7 @@ internal class PostTrainersApiTest {
       .then()
       .statusCode(200)
 
+    verify { authProvider.addUser("aUsername", "aPassword", TRAINER) }
     verify { trainers.add(
       Trainer(
         UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c"),
@@ -63,9 +71,10 @@ internal class PostTrainersApiTest {
 
   @Test
   internal fun `should return an error if trainer already added`() {
+    every { authProvider.addUser(any(), any(), any()) } returns succeededFuture(User.create(JsonObject()))
     every { trainers.find(any()) } returns succeededFuture(trainerWith(UUID.randomUUID()))
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
-    every { dateTimeGenerator.now() } returns LocalDateTime.of(2022, 10,20,6,0)
+    every { dateTimeProvider.now() } returns LocalDateTime.of(2022, 10,20,6,0)
 
     RestAssured.given()
       .port(port)

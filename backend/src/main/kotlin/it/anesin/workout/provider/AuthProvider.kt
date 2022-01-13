@@ -1,5 +1,6 @@
-package it.anesin.workout
+package it.anesin.workout.provider
 
+import io.vertx.core.Future
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.ext.auth.User
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
@@ -8,7 +9,11 @@ import io.vertx.ext.auth.mongo.*
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.handler.BasicAuthHandler
 
-class UserAuth(mongoClient: MongoClient) {
+interface AuthProvider {
+  fun addUser(username: String, password: String, role: UserRole): Future<User>
+}
+
+class DefaultAuthProvider(mongoClient: MongoClient) : AuthProvider {
   private val mongoAuthenticationOptions = MongoAuthenticationOptions().setCollectionName("users")
   private val mongoAuthentication = MongoAuthentication.create(mongoClient, mongoAuthenticationOptions)
   private val mongoAuthorizationOptions = MongoAuthorizationOptions()
@@ -17,8 +22,10 @@ class UserAuth(mongoClient: MongoClient) {
 
   fun basicAuthHandler() = BasicAuthHandler.create(mongoAuthentication)!!
 
-  fun addUser(credentials: UsernamePasswordCredentials, role: UserRole) {
-    mongoAuthentication.authenticate(credentials)
+  override fun addUser(username: String, password: String, role: UserRole): Future<User> {
+    val credentials = UsernamePasswordCredentials(username, password)
+
+    return mongoAuthentication.authenticate(credentials)
       .onSuccess { user -> addAuthorization(user, role) }
       .onFailure {
         mongoUserUtil.createUser(credentials.username, credentials.password)

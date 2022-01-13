@@ -7,21 +7,19 @@ import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
-import io.vertx.ext.auth.User
-import io.vertx.ext.auth.authentication.Credentials
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
-import io.vertx.ext.auth.authorization.RoleBasedAuthorization
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
-import io.vertx.ext.auth.mongo.*
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.BasicAuthHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
-import it.anesin.workout.UserRole.*
+import it.anesin.workout.provider.UserRole.*
 import it.anesin.workout.api.PostLoginApi
 import it.anesin.workout.api.PostTrainersApi
 import it.anesin.workout.db.MongoTrainers
+import it.anesin.workout.provider.DefaultAuthProvider
+import it.anesin.workout.provider.UTCDateTimeProvider
+import it.anesin.workout.provider.UUIDIdGenerator
 import java.io.FileNotFoundException
 import java.util.*
 
@@ -36,10 +34,9 @@ class MainVerticle : AbstractVerticle() {
     else throw FileNotFoundException("Config file not found in the resources")
 
     val mongoClient = MongoClient.createShared(vertx, mongoConfig(prop))
+    val authProvider = DefaultAuthProvider(mongoClient)
 
-    val userAuth = UserAuth(mongoClient)
-    val adminCredentials = UsernamePasswordCredentials(prop.getProperty("admin_username"), prop.getProperty("admin_password"))
-    userAuth.addUser(adminCredentials, ADMIN)
+    authProvider.addUser(prop.getProperty("admin_username"), prop.getProperty("admin_password"), ADMIN)
 
     val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
     val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
@@ -50,18 +47,18 @@ class MainVerticle : AbstractVerticle() {
       .errorHandler(401) { context -> log.warn("Unauthenticated call received: ${context.request().method()} ${context.request().uri()}") }
       .errorHandler(500) { context -> log.error("Internal Server Error", context.failure()) }
 
-    router.route("/api/login").handler(userAuth.basicAuthHandler())
+    router.route("/api/login").handler(authProvider.basicAuthHandler())
 
     val jwtAuthHandler = JWTAuthHandler.create(jwtAuthentication)
     router.route("/api/*").handler(jwtAuthHandler)
 
     val uuidIdGenerator = UUIDIdGenerator()
-    val utcDateTimeGenerator = UTCDateTimeGenerator()
+    val utcDateTimeGenerator = UTCDateTimeProvider()
 
     val trainers = MongoTrainers(mongoClient)
 
     PostLoginApi(router, jwtAuthentication)
-    PostTrainersApi(router, trainers, uuidIdGenerator, utcDateTimeGenerator)
+    PostTrainersApi(router, trainers, uuidIdGenerator, utcDateTimeGenerator, authProvider)
 
     vertx
       .createHttpServer()

@@ -1,4 +1,4 @@
-package it.anesin.workout
+package it.anesin.workout.provider
 
 import java.util.*
 

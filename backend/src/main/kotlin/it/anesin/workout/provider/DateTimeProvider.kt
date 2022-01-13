@@ -1,12 +1,12 @@
-package it.anesin.workout
+package it.anesin.workout.provider
 
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-interface DateTimeGenerator {
+interface DateTimeProvider {
   fun now(): LocalDateTime
 }
 
-class UTCDateTimeGenerator: DateTimeGenerator {
+class UTCDateTimeProvider: DateTimeProvider {
   override fun now(): LocalDateTime = LocalDateTime.now(ZoneId.of("UTC"))
 }

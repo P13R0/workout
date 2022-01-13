@@ -7,17 +7,19 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.HttpException
-import it.anesin.workout.DateTimeGenerator
-import it.anesin.workout.IdGenerator
 import it.anesin.workout.db.Trainers
 import it.anesin.workout.domain.Trainer
-import java.lang.Exception
+import it.anesin.workout.provider.AuthProvider
+import it.anesin.workout.provider.DateTimeProvider
+import it.anesin.workout.provider.IdGenerator
+import it.anesin.workout.provider.UserRole.TRAINER
 
 class PostTrainersApi(
   router: Router,
   private val trainers: Trainers,
   private val idGenerator: IdGenerator,
-  private val dateTimeGenerator: DateTimeGenerator
+  private val dateTimeProvider: DateTimeProvider,
+  private val authProvider: AuthProvider
 ) : Handler<RoutingContext> {
 
   init {
@@ -25,12 +27,10 @@ class PostTrainersApi(
   }
 
   override fun handle(context: RoutingContext) {
-    val trainer = context.bodyAsJson
-      .put("_id", idGenerator.random().toString())
-      .put("createdAt", dateTimeGenerator.now())
-      .mapTo(Trainer::class.java)
+    val trainer = context.bodyAsJson.put("_id", idGenerator.random().toString()).put("createdAt", dateTimeProvider.now()).mapTo(Trainer::class.java)
 
-    trainers.find(trainer.username)
+    authProvider.addUser(trainer.username, "aPassword", TRAINER)
+      .compose { trainers.find(trainer.username) }
       .compose {
         if (it == null) trainers.add(trainer)
         else failedFuture(HttpException(409, Exception("Trainer ${trainer.username} can't be added because already exist")))
