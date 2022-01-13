@@ -28,11 +28,22 @@ internal class MongoTrainersTest : MongoDbTest() {
 
     mongoTrainers.add(trainer)
       .compose {
-        mongoTrainers.findAll()
+        mongoTrainers.find(trainer.username)
           .onSuccess {
-            assertThat(it).contains(trainer)
+            assertThat(it).isEqualTo(trainer)
             test.completeNow()
           }
+      }
+      .onFailure(test::failNow)
+  }
+
+  @Test
+  @Timeout(5, unit = TimeUnit.SECONDS)
+  internal fun `should return null if not find a trainer`(vertx: Vertx, test: VertxTestContext) {
+    mongoTrainers.find("aUsernameNotExist")
+      .onSuccess {
+        assertThat(it).isEqualTo(null)
+        test.completeNow()
       }
       .onFailure(test::failNow)
   }

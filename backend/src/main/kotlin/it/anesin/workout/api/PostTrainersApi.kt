@@ -1,14 +1,17 @@
 package it.anesin.workout.api
 
+import io.vertx.core.Future.failedFuture
 import io.vertx.core.Handler
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.HttpException
 import it.anesin.workout.DateTimeGenerator
 import it.anesin.workout.IdGenerator
 import it.anesin.workout.db.Trainers
 import it.anesin.workout.domain.Trainer
+import java.lang.Exception
 
 class PostTrainersApi(
   router: Router,
@@ -27,11 +30,15 @@ class PostTrainersApi(
       .put("createdAt", dateTimeGenerator.now())
       .mapTo(Trainer::class.java)
 
-    trainers.add(trainer)
-      .onSuccess { context.response().end() }
-      .onFailure {
-        log.error(it.message)
-        context.fail(it)
+    trainers.find(trainer.username)
+      .compose {
+        if (it == null) trainers.add(trainer)
+        else failedFuture(HttpException(409, Exception("Trainer ${trainer.username} can't be added because already exist")))
       }
+      .onSuccess {
+        log.info("Trainer ${trainer.username} with id ${trainer._id} added")
+        context.response().end()
+      }
+      .onFailure(context::fail)
   }
 }

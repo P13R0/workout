@@ -13,6 +13,7 @@ import io.vertx.junit5.VertxTestContext
 import it.anesin.workout.DateTimeGenerator
 import it.anesin.workout.IdGenerator
 import it.anesin.workout.JsonExtension
+import it.anesin.workout.TestFactory.trainerWith
 import it.anesin.workout.db.Trainers
 import it.anesin.workout.domain.Trainer
 import org.junit.jupiter.api.BeforeEach
@@ -37,7 +38,8 @@ internal class PostTrainersApiTest {
   }
 
   @Test
-  internal fun `should add a trainer`() {
+  internal fun `should add a new trainer`() {
+    every { trainers.find(any()) } returns succeededFuture()
     every { trainers.add(any()) } returns succeededFuture()
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
     every { dateTimeGenerator.now() } returns LocalDateTime.of(2022, 10,20,6,0)
@@ -57,5 +59,22 @@ internal class PostTrainersApiTest {
         emptySet(),
         LocalDateTime.of(2022, 10,20,6,0)
       )) }
+  }
+
+  @Test
+  internal fun `should return an error if trainer already added`() {
+    every { trainers.find(any()) } returns succeededFuture(trainerWith(UUID.randomUUID()))
+    every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
+    every { dateTimeGenerator.now() } returns LocalDateTime.of(2022, 10,20,6,0)
+
+    RestAssured.given()
+      .port(port)
+      .body(JsonObject().put("username", "aUsername").put("name", "aName").toString())
+      .post("/api/trainers")
+      .then()
+      .statusCode(409)
+
+    verify { trainers.find("aUsername") }
+    verify (exactly = 0) { trainers.add(any()) }
   }
 }

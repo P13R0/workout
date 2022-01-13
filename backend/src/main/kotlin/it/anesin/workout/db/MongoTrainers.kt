@@ -18,6 +18,17 @@ class MongoTrainers(private val mongoClient: MongoClient) : Trainers {
     return promise.future()
   }
 
+  override fun find(username: String): Future<Trainer?> {
+    val promise = promise<Trainer?>()
+
+    mongoClient.findOne("trainers", JsonObject().put("username", username), JsonObject()) { asyncResult ->
+      if (asyncResult.succeeded()) promise.complete(asyncResult.result()?.mapTo(Trainer::class.java))
+      else promise.fail(asyncResult.cause())
+    }
+
+    return promise.future()
+  }
+
   override fun findAll(): Future<List<Trainer>> {
     val promise = promise<List<Trainer>>()
 
