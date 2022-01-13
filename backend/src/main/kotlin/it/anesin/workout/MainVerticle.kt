@@ -7,6 +7,8 @@ import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
+import io.vertx.ext.auth.User
+import io.vertx.ext.auth.authentication.Credentials
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization
 import io.vertx.ext.auth.jwt.JWTAuth
@@ -16,6 +18,7 @@ import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BasicAuthHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
+import it.anesin.workout.UserRole.*
 import it.anesin.workout.api.PostLoginApi
 import it.anesin.workout.api.PostTrainersApi
 import it.anesin.workout.db.MongoTrainers
@@ -29,48 +32,14 @@ class MainVerticle : AbstractVerticle() {
 
     val prop = Properties()
     val inputStream = javaClass.classLoader.getResourceAsStream("config.properties")
-
     if (inputStream != null) prop.load(inputStream)
     else throw FileNotFoundException("Config file not found in the resources")
 
     val mongoClient = MongoClient.createShared(vertx, mongoConfig(prop))
-    val mongoAuthenticationOptions = MongoAuthenticationOptions().setCollectionName("users")
-    val mongoAuthentication = MongoAuthentication.create(mongoClient, mongoAuthenticationOptions)
-    val mongoAuthorizationOptions = MongoAuthorizationOptions()
-    val mongoAuthorization = MongoAuthorization.create("provider", mongoClient, mongoAuthorizationOptions)
-    val mongoUserUtil = MongoUserUtil.create(mongoClient, mongoAuthenticationOptions, mongoAuthorizationOptions)
 
+    val userAuth = UserAuth(mongoClient)
     val adminCredentials = UsernamePasswordCredentials(prop.getProperty("admin_username"), prop.getProperty("admin_password"))
-    mongoAuthentication.authenticate(adminCredentials)
-      .onSuccess { user ->
-        mongoAuthorization.getAuthorizations(user)
-          .onSuccess {
-            if (!RoleBasedAuthorization.create("admin").match(user)) {
-              mongoUserUtil.createUserRolesAndPermissions(user.principal().getString("username"), listOf("admin"), listOf())
-                .onSuccess { log.info("Added role to Admin") }
-                .onFailure { log.error("Add role to Admin failed") }
-            }
-          }
-
-      }
-      .onFailure {
-        mongoUserUtil.createUser(adminCredentials.username, adminCredentials.password)
-          .onSuccess {
-            log.info("Admin user created")
-            mongoAuthentication.authenticate(adminCredentials)
-              .onSuccess { user ->
-                mongoAuthorization.getAuthorizations(user)
-                  .onSuccess {
-                    if (!RoleBasedAuthorization.create("admin").match(user)) {
-                      mongoUserUtil.createUserRolesAndPermissions(user.principal().getString("username"), listOf("admin"), listOf())
-                        .onSuccess { log.info("Added role to Admin") }
-                        .onFailure { log.error("Add role to Admin failed") }
-                    }
-                  }
-              }
-          }
-          .onFailure { log.error("Admin user creation failed", it) }
-      }
+    userAuth.addUser(adminCredentials, ADMIN)
 
     val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
     val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
@@ -81,8 +50,7 @@ class MainVerticle : AbstractVerticle() {
       .errorHandler(401) { context -> log.warn("Unauthenticated call received: ${context.request().method()} ${context.request().uri()}") }
       .errorHandler(500) { context -> log.error("Internal Server Error", context.failure()) }
 
-    val basicAuthHandler = BasicAuthHandler.create(mongoAuthentication)
-    router.route("/api/login").handler(basicAuthHandler)
+    router.route("/api/login").handler(userAuth.basicAuthHandler())
 
     val jwtAuthHandler = JWTAuthHandler.create(jwtAuthentication)
     router.route("/api/*").handler(jwtAuthHandler)
