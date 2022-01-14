@@ -29,11 +29,12 @@ class PostTrainersApi(
   override fun handle(context: RoutingContext) {
     val trainer = context.bodyAsJson.put("_id", idGenerator.random().toString()).put("createdAt", dateTimeProvider.now()).mapTo(Trainer::class.java)
 
+    // TODO: creare un generatore di passwords
     authProvider.addUser(trainer.username, "aPassword", TRAINER)
       .compose { trainers.find(trainer.username) }
       .compose {
         if (it == null) trainers.add(trainer)
-        else failedFuture(HttpException(409, Exception("Trainer ${trainer.username} can't be added because already exist")))
+        else failedFuture(HttpException(409))
       }
       .onSuccess {
         log.info("Trainer ${trainer.username} with id ${trainer._id} added")
