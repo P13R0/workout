@@ -21,7 +21,8 @@ class DefaultAuthProvider(mongoClient: MongoClient) : AuthProvider {
   private val mongoAuthorization = MongoAuthorization.create("provider", mongoClient, mongoAuthorizationOptions)
   private val mongoUserUtil = MongoUserUtil.create(mongoClient, mongoAuthenticationOptions, mongoAuthorizationOptions)
 
-  fun basicAuthHandler() = BasicAuthHandler.create(mongoAuthentication)!!
+  fun authorizationHandler() = BasicAuthHandler.create(mongoAuthentication)!!
+  fun authenticationHandler() = mongoAuthorization!!
 
   override fun addUser(username: String, password: String, role: UserRole): Future<Unit> {
     val credentials = UsernamePasswordCredentials(username, password)
