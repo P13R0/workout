@@ -15,22 +15,21 @@ import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.handler.AuthorizationHandler
 import io.vertx.ext.web.handler.BasicAuthHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
-import java.util.*
 
 interface AuthProvider {
   fun addUser(username: String, password: String, role: UserRole): Future<Unit>
 }
 
-class DefaultAuthProvider(vertx: Vertx, mongoClient: MongoClient, prop: Properties) : AuthProvider {
+class DefaultAuthProvider(vertx: Vertx, mongoClient: MongoClient, jwtKeys: Pair<String, String>) : AuthProvider {
   private val mongoAuthenticationOptions = MongoAuthenticationOptions().setCollectionName("users")
   private val mongoAuthentication = MongoAuthentication.create(mongoClient, mongoAuthenticationOptions)
   private val mongoAuthorizationOptions = MongoAuthorizationOptions()
   private val mongoAuthorization = MongoAuthorization.create("provider", mongoClient, mongoAuthorizationOptions)
   private val mongoUserUtil = MongoUserUtil.create(mongoClient, mongoAuthenticationOptions, mongoAuthorizationOptions)
 
-  private val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
-  private val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
-  private val jwtAuthenticationOptions = JWTAuthOptions().addPubSecKey(publicKey).addPubSecKey(privateKey)
+  private val firstKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(jwtKeys.first)
+  private val secondKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(jwtKeys.second)
+  private val jwtAuthenticationOptions = JWTAuthOptions().addPubSecKey(firstKey).addPubSecKey(secondKey)
   private val jwtAuthentication = JWTAuth.create(vertx, jwtAuthenticationOptions)
 
   fun jwtAuthentication() = jwtAuthentication!!

@@ -24,15 +24,16 @@ class MainVerticle : AbstractVerticle() {
   override fun start(startPromise: Promise<Void>) {
     JsonMapper.setPreferences()
 
-    val prop = Properties()
-    val inputStream = javaClass.classLoader.getResourceAsStream("config.properties")
-    if (inputStream != null) prop.load(inputStream)
-    else throw FileNotFoundException("Config file not found in the resources")
+    val configProvider = PropertiesConfigProvider()
+    val idProvider = UUIDIdProvider()
+    val dateTimeProvider = UTCDateTimeProvider()
+    val passwordProvider = DefaultPasswordProvider()
+    val mongoClient = MongoClient.createShared(vertx, configProvider.mongo())
+    val authProvider = DefaultAuthProvider(vertx, mongoClient, configProvider.jwtKeys())
 
-    val mongoClient = MongoClient.createShared(vertx, mongoConfig(prop))
-    val authProvider = DefaultAuthProvider(vertx, mongoClient, prop)
+    authProvider.addUser(configProvider.adminUsername(), configProvider.adminPassword(), ADMIN)
 
-    authProvider.addUser(prop.getProperty("admin_username"), prop.getProperty("admin_password"), ADMIN)
+    val trainers = MongoTrainers(mongoClient)
 
     val router = Router.router(vertx)
       .errorHandler(401) { context -> log.warn("Unauthenticated call received: ${context.request().method()} ${context.request().uri()}") }
@@ -42,12 +43,6 @@ class MainVerticle : AbstractVerticle() {
     router.route("/api/login").handler(authProvider.basicAuthenticationHandler())
     router.route("/api/*").handler(authProvider.jwtAuthenticationHandler())
     router.route("/api/trainers/*").handler(authProvider.adminAuthorizationHandler())
-
-    val idProvider = UUIDIdProvider()
-    val dateTimeProvider = UTCDateTimeProvider()
-    val passwordProvider = DefaultPasswordProvider()
-
-    val trainers = MongoTrainers(mongoClient)
 
     PostLoginApi(router, authProvider.jwtAuthentication())
     PostTrainersApi(router, trainers, idProvider, dateTimeProvider, authProvider, passwordProvider)
@@ -61,18 +56,6 @@ class MainVerticle : AbstractVerticle() {
   }
 
   private fun port(): Int = System.getenv("PORT")?.let { Integer.parseInt(it) } ?: 8085
-
-  private fun mongoConfig(prop: Properties): JsonObject = JsonObject()
-    .put("hosts", JsonArray()
-      .add(JsonObject().put("host", prop.getProperty("mongo_host_1")).put("port", 27017))
-      .add(JsonObject().put("host", prop.getProperty("mongo_host_2")).put("port", 27017))
-      .add(JsonObject().put("host", prop.getProperty("mongo_host_3")).put("port", 27017)))
-    .put("replicaSet", prop.getProperty("mongo_replica_set"))
-    .put("db_name", prop.getProperty("mongo_db_name"))
-    .put("username", prop.getProperty("mongo_username"))
-    .put("password", prop.getProperty("mongo_password"))
-    .put("ssl", true)
-    .put("authSource", "admin")
 }
 
 private fun main() {
