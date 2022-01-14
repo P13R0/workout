@@ -6,10 +6,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization
-import io.vertx.ext.auth.jwt.JWTAuth
-import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.AuthorizationHandler
@@ -33,26 +30,18 @@ class MainVerticle : AbstractVerticle() {
     else throw FileNotFoundException("Config file not found in the resources")
 
     val mongoClient = MongoClient.createShared(vertx, mongoConfig(prop))
-    val authProvider = DefaultAuthProvider(mongoClient)
+    val authProvider = DefaultAuthProvider(vertx, mongoClient, prop)
 
     authProvider.addUser(prop.getProperty("admin_username"), prop.getProperty("admin_password"), ADMIN)
-
-    val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
-    val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
-    val jwtAuthenticationOptions = JWTAuthOptions().addPubSecKey(publicKey).addPubSecKey(privateKey)
-    val jwtAuthentication = JWTAuth.create(vertx, jwtAuthenticationOptions)
 
     val router = Router.router(vertx)
       .errorHandler(401) { context -> log.warn("Unauthenticated call received: ${context.request().method()} ${context.request().uri()}") }
       .errorHandler(403) { context -> log.warn("Unauthorized call received: ${context.request().method()} ${context.request().uri()}") }
       .errorHandler(500) { context -> log.error("Internal Server Error", context.failure()) }
 
-    router.route("/api/login").handler(authProvider.authorizationHandler())
-
-    val jwtAuthHandler = JWTAuthHandler.create(jwtAuthentication)
-    router.route("/api/*").handler(jwtAuthHandler)
-
-    router.route("/api/trainers/*").handler(AuthorizationHandler.create(RoleBasedAuthorization.create(ADMIN.name)).addAuthorizationProvider(authProvider.authenticationHandler()))
+    router.route("/api/login").handler(authProvider.basicAuthenticationHandler())
+    router.route("/api/*").handler(authProvider.jwtAuthenticationHandler())
+    router.route("/api/trainers/*").handler(authProvider.adminAuthorizationHandler())
 
     val idProvider = UUIDIdProvider()
     val dateTimeProvider = UTCDateTimeProvider()
@@ -60,7 +49,7 @@ class MainVerticle : AbstractVerticle() {
 
     val trainers = MongoTrainers(mongoClient)
 
-    PostLoginApi(router, jwtAuthentication)
+    PostLoginApi(router, authProvider.jwtAuthentication())
     PostTrainersApi(router, trainers, idProvider, dateTimeProvider, authProvider, passwordProvider)
 
     vertx

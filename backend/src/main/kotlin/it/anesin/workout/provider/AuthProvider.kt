@@ -2,27 +2,43 @@ package it.anesin.workout.provider
 
 import io.vertx.core.Future
 import io.vertx.core.Promise
+import io.vertx.core.Vertx
 import io.vertx.core.http.impl.HttpClientConnection.log
+import io.vertx.ext.auth.PubSecKeyOptions
 import io.vertx.ext.auth.User
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 import io.vertx.ext.auth.authorization.RoleBasedAuthorization
+import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.auth.mongo.*
 import io.vertx.ext.mongo.MongoClient
+import io.vertx.ext.web.handler.AuthorizationHandler
 import io.vertx.ext.web.handler.BasicAuthHandler
+import io.vertx.ext.web.handler.JWTAuthHandler
+import java.util.*
 
 interface AuthProvider {
   fun addUser(username: String, password: String, role: UserRole): Future<Unit>
 }
 
-class DefaultAuthProvider(mongoClient: MongoClient) : AuthProvider {
+class DefaultAuthProvider(vertx: Vertx, mongoClient: MongoClient, prop: Properties) : AuthProvider {
   private val mongoAuthenticationOptions = MongoAuthenticationOptions().setCollectionName("users")
   private val mongoAuthentication = MongoAuthentication.create(mongoClient, mongoAuthenticationOptions)
   private val mongoAuthorizationOptions = MongoAuthorizationOptions()
   private val mongoAuthorization = MongoAuthorization.create("provider", mongoClient, mongoAuthorizationOptions)
   private val mongoUserUtil = MongoUserUtil.create(mongoClient, mongoAuthenticationOptions, mongoAuthorizationOptions)
 
-  fun authorizationHandler() = BasicAuthHandler.create(mongoAuthentication)!!
-  fun authenticationHandler() = mongoAuthorization!!
+  private val publicKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_public_key"))
+  private val privateKey = PubSecKeyOptions().setAlgorithm("RS256").setBuffer(prop.getProperty("jwt_private_key"))
+  private val jwtAuthenticationOptions = JWTAuthOptions().addPubSecKey(publicKey).addPubSecKey(privateKey)
+  private val jwtAuthentication = JWTAuth.create(vertx, jwtAuthenticationOptions)
+
+  fun jwtAuthentication() = jwtAuthentication!!
+  fun jwtAuthenticationHandler() = JWTAuthHandler.create(jwtAuthentication)!!
+  fun basicAuthenticationHandler() = BasicAuthHandler.create(mongoAuthentication)!!
+
+  fun adminAuthorizationHandler() = AuthorizationHandler.create(RoleBasedAuthorization.create(UserRole.ADMIN.name)).addAuthorizationProvider(mongoAuthorization)!!
+  fun trainerAuthorizationHandler() = AuthorizationHandler.create(RoleBasedAuthorization.create(UserRole.TRAINER.name)).addAuthorizationProvider(mongoAuthorization)!!
 
   override fun addUser(username: String, password: String, role: UserRole): Future<Unit> {
     val credentials = UsernamePasswordCredentials(username, password)
