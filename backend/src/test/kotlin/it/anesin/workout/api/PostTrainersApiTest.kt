@@ -45,7 +45,7 @@ internal class PostTrainersApiTest {
 
   @Test
   internal fun `should add a new trainer`() {
-    every { authProvider.addUser(any(), any(), any()) } returns succeededFuture(User.create(JsonObject()))
+    every { authProvider.addUser(any(), any(), any()) } returns succeededFuture()
     every { trainers.find(any()) } returns succeededFuture()
     every { trainers.add(any()) } returns succeededFuture()
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
@@ -71,7 +71,7 @@ internal class PostTrainersApiTest {
 
   @Test
   internal fun `should return an error if trainer already added`() {
-    every { authProvider.addUser(any(), any(), any()) } returns succeededFuture(User.create(JsonObject()))
+    every { authProvider.addUser(any(), any(), any()) } returns succeededFuture()
     every { trainers.find(any()) } returns succeededFuture(trainerWith(UUID.randomUUID()))
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
     every { dateTimeProvider.now() } returns LocalDateTime.of(2022, 10,20,6,0)

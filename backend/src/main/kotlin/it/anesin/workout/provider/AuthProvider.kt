@@ -1,6 +1,7 @@
 package it.anesin.workout.provider
 
 import io.vertx.core.Future
+import io.vertx.core.Promise
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.ext.auth.User
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
@@ -10,7 +11,7 @@ import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.handler.BasicAuthHandler
 
 interface AuthProvider {
-  fun addUser(username: String, password: String, role: UserRole): Future<User>
+  fun addUser(username: String, password: String, role: UserRole): Future<Unit>
 }
 
 class DefaultAuthProvider(mongoClient: MongoClient) : AuthProvider {
@@ -22,31 +23,43 @@ class DefaultAuthProvider(mongoClient: MongoClient) : AuthProvider {
 
   fun basicAuthHandler() = BasicAuthHandler.create(mongoAuthentication)!!
 
-  override fun addUser(username: String, password: String, role: UserRole): Future<User> {
+  override fun addUser(username: String, password: String, role: UserRole): Future<Unit> {
     val credentials = UsernamePasswordCredentials(username, password)
+    val promise = Promise.promise<Unit>()
 
-    return mongoAuthentication.authenticate(credentials)
-      .onSuccess { user -> addAuthorization(user, role) }
-      .onFailure {
+    mongoAuthentication.authenticate(credentials) { asyncResult ->
+      if (asyncResult.succeeded()) {
+        addAuthorization(asyncResult.result(), role)
+          .onSuccess { succeedPromise(credentials, role, promise) }
+          .onFailure { failedPromise(credentials, role, it, promise) }
+      } else {
         mongoUserUtil.createUser(credentials.username, credentials.password)
-          .onSuccess {
-            log.info("User ${credentials.username} created")
-            mongoAuthentication.authenticate(credentials)
-              .onSuccess { user -> addAuthorization(user, role) }
-          }
-          .onFailure { log.error("Failed add role $role to user ${credentials.username}", it) }
+          .compose { mongoAuthentication.authenticate(credentials) }
+          .compose { user -> addAuthorization(user, role) }
+          .onSuccess { succeedPromise(credentials, role, promise) }
+          .onFailure { failedPromise(credentials, role, it, promise) }
       }
+    }
+
+    return promise.future()
   }
 
-  private fun addAuthorization(user: User, role: UserRole) {
-    mongoAuthorization.getAuthorizations(user)
-      .onSuccess {
+  private fun succeedPromise(credentials: UsernamePasswordCredentials, role: UserRole, promise: Promise<Unit>) {
+    log.info("User ${credentials.username} added or already added with role $role")
+    promise.complete()
+  }
+
+  private fun failedPromise(credentials: UsernamePasswordCredentials, role: UserRole, it: Throwable?, promise: Promise<Unit>) {
+    log.error("Failed to add user ${credentials.username} with role $role", it)
+    promise.fail(it)
+  }
+
+  private fun addAuthorization(user: User, role: UserRole): Future<String> {
+    return mongoAuthorization.getAuthorizations(user)
+      .compose {
         if (isRoleAbsent(role, user)) {
-          val username = user.principal().getString("username")
-          mongoUserUtil.createUserRolesAndPermissions(username, listOf(role.name), listOf())
-            .onSuccess { log.info("Role $role added to user $username") }
-            .onFailure { log.error("Failed add role $role to user $username") }
-        }
+          mongoUserUtil.createUserRolesAndPermissions(user.principal().getString("username"), listOf(role.name), listOf())
+        } else { Future.succeededFuture() }
       }
   }
 
