@@ -12,6 +12,7 @@ import it.anesin.workout.domain.Trainer
 import it.anesin.workout.provider.AuthProvider
 import it.anesin.workout.provider.DateTimeProvider
 import it.anesin.workout.provider.IdGenerator
+import it.anesin.workout.provider.PasswordProvider
 import it.anesin.workout.provider.UserRole.TRAINER
 
 class PostTrainersApi(
@@ -19,7 +20,8 @@ class PostTrainersApi(
   private val trainers: Trainers,
   private val idGenerator: IdGenerator,
   private val dateTimeProvider: DateTimeProvider,
-  private val authProvider: AuthProvider
+  private val authProvider: AuthProvider,
+  private val passwordProvider: PasswordProvider
 ) : Handler<RoutingContext> {
 
   init {
@@ -29,8 +31,7 @@ class PostTrainersApi(
   override fun handle(context: RoutingContext) {
     val trainer = context.bodyAsJson.put("_id", idGenerator.random().toString()).put("createdAt", dateTimeProvider.now()).mapTo(Trainer::class.java)
 
-    // TODO: creare un generatore di passwords
-    authProvider.addUser(trainer.username, "aPassword", TRAINER)
+    authProvider.addUser(trainer.username, passwordProvider.random(), TRAINER)
       .compose { trainers.find(trainer.username) }
       .compose {
         if (it == null) trainers.add(trainer)

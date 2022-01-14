@@ -7,7 +7,6 @@ import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.auth.PubSecKeyOptions
-import io.vertx.ext.auth.authentication.UsernamePasswordCredentials
 import io.vertx.ext.auth.jwt.JWTAuth
 import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.mongo.MongoClient
@@ -18,8 +17,9 @@ import it.anesin.workout.api.PostLoginApi
 import it.anesin.workout.api.PostTrainersApi
 import it.anesin.workout.db.MongoTrainers
 import it.anesin.workout.provider.DefaultAuthProvider
+import it.anesin.workout.provider.DefaultPasswordProvider
 import it.anesin.workout.provider.UTCDateTimeProvider
-import it.anesin.workout.provider.UUIDIdGenerator
+import it.anesin.workout.provider.UUIDIdProvider
 import java.io.FileNotFoundException
 import java.util.*
 
@@ -52,13 +52,14 @@ class MainVerticle : AbstractVerticle() {
     val jwtAuthHandler = JWTAuthHandler.create(jwtAuthentication)
     router.route("/api/*").handler(jwtAuthHandler)
 
-    val uuidIdGenerator = UUIDIdGenerator()
-    val utcDateTimeGenerator = UTCDateTimeProvider()
+    val idProvider = UUIDIdProvider()
+    val dateTimeProvider = UTCDateTimeProvider()
+    val passwordProvider = DefaultPasswordProvider()
 
     val trainers = MongoTrainers(mongoClient)
 
     PostLoginApi(router, jwtAuthentication)
-    PostTrainersApi(router, trainers, uuidIdGenerator, utcDateTimeGenerator, authProvider)
+    PostTrainersApi(router, trainers, idProvider, dateTimeProvider, authProvider, passwordProvider)
 
     vertx
       .createHttpServer()
