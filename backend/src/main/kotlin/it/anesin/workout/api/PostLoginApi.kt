@@ -17,7 +17,8 @@ class PostLoginApi(router: Router, private val jwtProvider: JWTAuth) : Handler<R
   }
 
   override fun handle(context: RoutingContext) {
-    val options = JWTOptions().setAlgorithm("RS256").setExpiresInMinutes(15)
+    val oneDayInMinutes = 1440
+    val options = JWTOptions().setAlgorithm("RS256").setExpiresInMinutes(oneDayInMinutes)
     val token = jwtProvider.generateToken(context.user().principal().putNull("password"), options)
 
     context.response()
