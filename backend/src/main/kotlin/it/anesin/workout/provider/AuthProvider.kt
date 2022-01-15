@@ -35,9 +35,7 @@ class DefaultAuthProvider(vertx: Vertx, mongoClient: MongoClient, jwtKeys: Pair<
   fun jwtAuthentication() = jwtAuthentication!!
   fun jwtAuthenticationHandler() = JWTAuthHandler.create(jwtAuthentication)!!
   fun basicAuthenticationHandler() = BasicAuthHandler.create(mongoAuthentication)!!
-
-  fun adminAuthorizationHandler() = AuthorizationHandler.create(RoleBasedAuthorization.create(UserRole.ADMIN.name)).addAuthorizationProvider(mongoAuthorization)!!
-  fun trainerAuthorizationHandler() = AuthorizationHandler.create(RoleBasedAuthorization.create(UserRole.TRAINER.name)).addAuthorizationProvider(mongoAuthorization)!!
+  fun roleAuthorizationHandler(role: UserRole) = AuthorizationHandler.create(RoleBasedAuthorization.create(role.name)).addAuthorizationProvider(mongoAuthorization)!!
 
   override fun addUser(username: String, password: String, role: UserRole): Future<Unit> {
     val credentials = UsernamePasswordCredentials(username, password)

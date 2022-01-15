@@ -4,20 +4,13 @@ import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
 import io.vertx.core.http.impl.HttpClientConnection.log
-import io.vertx.core.json.JsonArray
-import io.vertx.core.json.JsonObject
-import io.vertx.ext.auth.authorization.RoleBasedAuthorization
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.AuthorizationHandler
-import io.vertx.ext.web.handler.JWTAuthHandler
 import it.anesin.workout.provider.UserRole.*
 import it.anesin.workout.api.PostLoginApi
 import it.anesin.workout.api.PostTrainersApi
 import it.anesin.workout.db.MongoTrainers
 import it.anesin.workout.provider.*
-import java.io.FileNotFoundException
-import java.util.*
 
 class MainVerticle : AbstractVerticle() {
 
@@ -42,7 +35,7 @@ class MainVerticle : AbstractVerticle() {
 
     router.route("/api/login").handler(authProvider.basicAuthenticationHandler())
     router.route("/api/*").handler(authProvider.jwtAuthenticationHandler())
-    router.route("/api/trainers/*").handler(authProvider.adminAuthorizationHandler())
+    router.route("/api/trainers/*").handler(authProvider.roleAuthorizationHandler(ADMIN))
 
     PostLoginApi(router, authProvider.jwtAuthentication())
     PostTrainersApi(router, trainers, idProvider, dateTimeProvider, authProvider, passwordProvider)
