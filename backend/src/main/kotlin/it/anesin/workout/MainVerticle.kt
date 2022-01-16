@@ -48,7 +48,7 @@ class MainVerticle : AbstractVerticle() {
 
     PostLoginApi(router, authProvider.jwtAuthentication())
     PostTrainersApi(router, trainers, idProvider, dateTimeProvider, passwordProvider, users, authorizations)
-    PostTraineesApi(router, trainees, idProvider, dateTimeProvider, authProvider, passwordProvider)
+    PostTraineesApi(router, trainees, idProvider, dateTimeProvider, passwordProvider, users, authorizations)
 
     vertx
       .createHttpServer()
