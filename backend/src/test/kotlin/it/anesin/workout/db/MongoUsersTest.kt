@@ -23,14 +23,14 @@ internal class MongoUsersTest : MongoDbTest() {
   internal fun setUp(vertx: Vertx) {
     val mongoClient = MongoClient.createShared(vertx, testConfig())
 
-    authProvider = DefaultAuthProvider(vertx, mongoClient, PropertiesConfigProvider().jwtKeys(),)
+    authProvider = DefaultAuthProvider(vertx, mongoClient, PropertiesConfigProvider().jwtKeys())
     mongoUsers = MongoUsers(mongoClient, authProvider.mongoUserUtil())
   }
 
   @Test
   @Timeout(5, unit = TimeUnit.SECONDS)
-  internal fun `should return true if find a user`(vertx: Vertx, test: VertxTestContext) {
-    authProvider.addUser("aUsername", "aPassword", TRAINER)
+  internal fun `should add a new user`(vertx: Vertx, test: VertxTestContext) {
+    mongoUsers.add("aUsername", "aPassword")
       .compose { mongoUsers.find("aUsername") }
       .onSuccess {
         assertThat(it).isTrue
