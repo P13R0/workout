@@ -1,41 +1,19 @@
 package it.anesin.workout.db
 
 import io.vertx.core.Future
-import io.vertx.core.Promise.promise
+import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.mongo.MongoClient
 import it.anesin.workout.domain.Trainer
 
 class MongoTrainers(private val mongoClient: MongoClient) : Trainers {
 
-  override fun add(trainer: Trainer): Future<Unit> {
-    val promise = promise<Unit>()
+  override fun add(trainer: Trainer): Future<String> =
+    mongoClient.insert("trainers", JsonObject.mapFrom(trainer))
+      .onSuccess { log.info("Added trainer ${trainer.username} with id $it") }
+      .onFailure { log.error("Failed to add trainer ${trainer.username}", it) }
 
-    mongoClient.insert("trainers", JsonObject.mapFrom(trainer)) { asyncResult ->
-      if (asyncResult.succeeded()) promise.complete()
-      else promise.fail(asyncResult.cause())
-    }
-    return promise.future()
-  }
-
-  override fun find(username: String): Future<Trainer?> {
-    val promise = promise<Trainer?>()
-
-    mongoClient.findOne("trainers", JsonObject().put("username", username), JsonObject()) { asyncResult ->
-      if (asyncResult.succeeded()) promise.complete(asyncResult.result()?.mapTo(Trainer::class.java))
-      else promise.fail(asyncResult.cause())
-    }
-
-    return promise.future()
-  }
-
-  override fun findAll(): Future<List<Trainer>> {
-    val promise = promise<List<Trainer>>()
-
-    mongoClient.find("trainers", JsonObject()) { asyncResult ->
-      if (asyncResult.succeeded()) promise.complete(asyncResult.result().map { it.mapTo(Trainer::class.java) })
-      else promise.fail(asyncResult.cause())
-    }
-    return promise.future()
-  }
+  override fun find(username: String): Future<Trainer?> =
+    mongoClient.findOne("trainers", JsonObject().put("username", username), JsonObject())
+      .map { it?.mapTo(Trainer::class.java) }
 }

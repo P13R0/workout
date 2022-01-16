@@ -27,12 +27,10 @@ internal class MongoTrainersTest : MongoDbTest() {
     val trainer = trainerWith(UUID.randomUUID())
 
     mongoTrainers.add(trainer)
-      .compose {
-        mongoTrainers.find(trainer.username)
-          .onSuccess {
-            assertThat(it).isEqualTo(trainer)
-            test.completeNow()
-          }
+      .compose { mongoTrainers.find(trainer.username) }
+      .onSuccess {
+        assertThat(it).isEqualTo(trainer)
+        test.completeNow()
       }
       .onFailure(test::failNow)
   }
