@@ -47,7 +47,7 @@ class MainVerticle : AbstractVerticle() {
     router.route("/api/trainees/*").handler(authProvider.roleAuthorizationHandler(TRAINER))
 
     PostLoginApi(router, authProvider.jwtAuthentication())
-    PostTrainersApi(router, trainers, idProvider, dateTimeProvider, authProvider, passwordProvider)
+    PostTrainersApi(router, trainers, idProvider, dateTimeProvider, passwordProvider, users, authorizations)
     PostTraineesApi(router, trainees, idProvider, dateTimeProvider, authProvider, passwordProvider)
 
     vertx

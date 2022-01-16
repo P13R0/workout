@@ -10,7 +10,7 @@ class MongoTrainers(private val mongoClient: MongoClient) : Trainers {
 
   override fun add(trainer: Trainer): Future<String> =
     mongoClient.insert("trainers", JsonObject.mapFrom(trainer))
-      .onSuccess { log.info("Added trainer ${trainer.username} with id $it") }
+      .onSuccess { log.info("Added trainer ${trainer.username}") }
       .onFailure { log.error("Failed to add trainer ${trainer.username}", it) }
 
   override fun find(username: String): Future<Trainer?> =
