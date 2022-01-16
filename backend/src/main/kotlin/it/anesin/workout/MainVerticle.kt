@@ -6,11 +6,16 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
-import it.anesin.workout.provider.UserRole.*
 import it.anesin.workout.api.PostLoginApi
+import it.anesin.workout.api.PostTraineesApi
 import it.anesin.workout.api.PostTrainersApi
+import it.anesin.workout.db.MongoAuthorizations
+import it.anesin.workout.db.MongoTrainees
 import it.anesin.workout.db.MongoTrainers
+import it.anesin.workout.db.MongoUsers
 import it.anesin.workout.provider.*
+import it.anesin.workout.provider.UserRole.ADMIN
+import it.anesin.workout.provider.UserRole.TRAINER
 
 class MainVerticle : AbstractVerticle() {
 
@@ -24,9 +29,12 @@ class MainVerticle : AbstractVerticle() {
     val mongoClient = MongoClient.createShared(vertx, configProvider.mongo())
     val authProvider = DefaultAuthProvider(vertx, mongoClient, configProvider.jwtKeys())
 
-    authProvider.addUser(configProvider.adminUsername(), configProvider.adminPassword(), ADMIN)
-
+    val users = MongoUsers(mongoClient, authProvider.mongoUserUtil())
+    val authorizations = MongoAuthorizations(mongoClient, authProvider.mongoUserUtil())
     val trainers = MongoTrainers(mongoClient)
+    val trainees = MongoTrainees(mongoClient)
+
+    setAdminUser(users, authorizations, configProvider.adminUsername(), configProvider.adminPassword())
 
     val router = Router.router(vertx)
       .errorHandler(401) { context -> log.warn("Unauthenticated call received: ${context.request().method()} ${context.request().uri()}") }
@@ -36,9 +44,11 @@ class MainVerticle : AbstractVerticle() {
     router.route("/api/login").handler(authProvider.basicAuthenticationHandler())
     router.route("/api/*").handler(authProvider.jwtAuthenticationHandler())
     router.route("/api/trainers/*").handler(authProvider.roleAuthorizationHandler(ADMIN))
+    router.route("/api/trainees/*").handler(authProvider.roleAuthorizationHandler(TRAINER))
 
     PostLoginApi(router, authProvider.jwtAuthentication())
     PostTrainersApi(router, trainers, idProvider, dateTimeProvider, authProvider, passwordProvider)
+    PostTraineesApi(router, trainees, idProvider, dateTimeProvider, authProvider, passwordProvider)
 
     vertx
       .createHttpServer()
@@ -46,6 +56,15 @@ class MainVerticle : AbstractVerticle() {
       .listen(port())
       .onSuccess { server -> log.info("Workout backend server is listening on port ${server.actualPort()}") }
       .onFailure { log.error("Workout backend server failed to start", it) }
+  }
+
+  private fun setAdminUser(users: MongoUsers, authorizations: MongoAuthorizations, username: String, password: String) {
+    users.find(username).onSuccess { userAlreadyExist ->
+      if (!userAlreadyExist) { users.add(username, password) }
+    }
+    authorizations.findRoles(username).onSuccess { roles ->
+      if (!roles.contains(ADMIN)) { authorizations.addRole(username, ADMIN)}
+    }
   }
 
   private fun port(): Int = System.getenv("PORT")?.let { Integer.parseInt(it) } ?: 8085
