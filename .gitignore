@@ -48,4 +48,4 @@ pnpm-debug.log*
 # Other things
 .DS_Store
 node_modules
-/dist
+dist
