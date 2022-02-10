@@ -72,3 +72,6 @@ node_modules
 platforms
 plugins
 www
+
+# Local Netlify folder
+.netlify
