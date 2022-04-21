@@ -1,15 +1,18 @@
 <template>
-  <div id="app">
-    <router-view/>
-  </div>
+  <ion-app>
+    <ion-router-outlet />
+  </ion-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-</style>
+<script>
+import { IonApp, IonRouterOutlet } from '@ionic/vue';
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  name: 'App',
+  components: {
+    IonApp,
+    IonRouterOutlet,
+  }
+});
+</script>
