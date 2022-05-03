@@ -15,7 +15,9 @@
               <ion-label position="floating">Password</ion-label>
               <ion-input v-model="password" type="password" required></ion-input>
             </ion-item>
-            <ion-button type="submit" shape="round">Login</ion-button>
+            <ion-button type="submit" shape="round">
+              Login <ion-icon :icon="logInOutline" slot="start">
+            </ion-icon></ion-button>
           </form>
         </ion-card-content>
       </ion-card>
@@ -24,11 +26,13 @@
 </template>
 
 <script>
-import {IonPage, IonCard, IonInput, IonLabel, IonItem, IonButton} from '@ionic/vue'
+import { IonPage, IonCard, IonInput, IonLabel, IonItem, IonButton, IonIcon } from '@ionic/vue'
+import { logInOutline } from 'ionicons/icons';
 
 export default {
   name: "LoginView",
-  components: {IonPage, IonCard, IonInput, IonLabel, IonItem, IonButton},
+  components: { IonPage, IonCard, IonInput, IonLabel, IonItem, IonButton, IonIcon },
+  setup: () => ({ logInOutline }),
   data: () => ({
     username: "",
     password: ""
