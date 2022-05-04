@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true">
+    <ion-content>
       <ion-card>
         <ion-card-header>
           <ion-card-title>Workout Manager</ion-card-title>
@@ -42,6 +42,18 @@ export default {
 </script>
 
 <style scoped>
+ion-content {
+  --ion-background-color: #9DD9D2
+}
+ion-card {
+  min-width: 15em;
+  max-width: 30em;
+  margin-right: 5em;
+  top: 50%;
+  left: 50%;
+  transform: translate(-55%, -55%);
+  --ion-background-color: #FFF8F0
+}
 ion-button {
   margin-top: 2em;
 }
