@@ -4,9 +4,9 @@
       <div class="center">
         <ion-card>
           <ion-card-header>
-            <ion-card-title>Workout Manager</ion-card-title>
+            <ion-card-title class="ion-text-center">Workout Manager</ion-card-title>
           </ion-card-header>
-          <ion-card-content>
+          <ion-card-content class="ion-text-center">
             <form @submit.prevent="handleLogin">
               <ion-item>
                 <ion-label position="floating">Username</ion-label>
@@ -48,11 +48,13 @@ ion-content {
   --ion-background-color: #9DD9D2
 }
 .center{
-  height: 100%; display: flex; align-items: center; justify-content: center;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 ion-card {
   min-width: 15em;
-  max-width: 30em;
   --ion-background-color: #FFF8F0
 }
 ion-button {
