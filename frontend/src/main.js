@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { IonicVue } from '@ionic/vue';
+import {IonCardSubtitle, IonicVue} from '@ionic/vue';
 import App from './App.vue';
 import router from './router';
 import './registerServiceWorker'
@@ -20,7 +20,22 @@ import '@ionic/vue/css/text-transformation.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
 
+import { IonPage, IonContent, IonCard, IonCardTitle, IonCardHeader, IonCardContent, IonInput, IonLabel, IonItem, IonButton, IonIcon } from '@ionic/vue'
+
 const app = createApp(App).use(IonicVue).use(router);
+
+app.component('ion-page', IonPage);
+app.component('ion-content', IonContent);
+app.component('ion-card', IonCard);
+app.component('ion-card-title', IonCardTitle);
+app.component('ion-card-subtitle', IonCardSubtitle);
+app.component('ion-card-header', IonCardHeader);
+app.component('ion-card-content', IonCardContent);
+app.component('ion-input', IonInput);
+app.component('ion-label', IonLabel);
+app.component('ion-item', IonItem);
+app.component('ion-button', IonButton);
+app.component('ion-icon', IonIcon);
 
 router.isReady().then(() => {
   app.mount('#app');
