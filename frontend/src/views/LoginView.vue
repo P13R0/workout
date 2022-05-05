@@ -28,12 +28,12 @@
 </template>
 
 <script>
-import { IonPage, IonCard, IonInput, IonLabel, IonItem, IonButton, IonIcon } from '@ionic/vue'
+import { IonPage, IonInput, IonLabel, IonItem, IonButton, IonIcon, IonCard, IonCardTitle, IonCardHeader, IonCardContent } from '@ionic/vue'
 import { logInOutline } from 'ionicons/icons';
 
 export default {
   name: "LoginView",
-  components: { IonPage, IonCard, IonInput, IonLabel, IonItem, IonButton, IonIcon },
+  components: { IonPage, IonInput, IonLabel, IonItem, IonButton, IonIcon, IonCard, IonCardTitle, IonCardHeader, IonCardContent },
   setup: () => ({ logInOutline }),
   data: () => ({
     username: "",
