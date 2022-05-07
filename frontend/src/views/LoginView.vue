@@ -26,8 +26,8 @@
 </template>
 
 <script>
-import {logInOutline} from 'ionicons/icons';
-import {defineComponent} from "vue";
+import { logInOutline } from 'ionicons/icons';
+import { defineComponent } from "vue";
 
 export default defineComponent({
   name: "LoginView",
