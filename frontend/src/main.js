@@ -10,7 +10,7 @@ import { IonCard, IonCardTitle, IonCardHeader, IonCardContent } from '@ionic/vue
 import { IonInput, IonLabel, IonItem, IonButton, IonIcon } from '@ionic/vue'
 
 const app = createApp(App)
-  .use(IonicVue)
+  .use(IonicVue, { mode: 'ios' })
   .use(router)
   .component('ion-page', IonPage)
   .component('ion-header', IonHeader)
