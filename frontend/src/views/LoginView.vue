@@ -16,7 +16,9 @@
                 <ion-label position="floating">Password</ion-label>
                 <ion-input v-model="password" type="password" required></ion-input>
               </ion-item>
-              <ion-button type="submit" shape="round">Login<ion-icon :icon="logInOutline" slot="start"></ion-icon></ion-button>
+              <ion-button type="submit" shape="round" @click="login()">Login
+                <ion-icon :icon="logInOutline" slot="start"></ion-icon>
+              </ion-button>
             </form>
           </ion-card-content>
         </ion-card>
@@ -26,8 +28,9 @@
 </template>
 
 <script>
-import { logInOutline } from 'ionicons/icons';
-import { defineComponent } from "vue";
+import {logInOutline} from 'ionicons/icons';
+import {defineComponent} from "vue";
+import UserApi from "@/api/UserApi";
 
 export default defineComponent({
   name: "LoginView",
@@ -36,7 +39,26 @@ export default defineComponent({
     username: "",
     password: ""
   }),
-  methods: {}
+  beforeMount() {
+    this.home()
+  },
+  methods: {
+    login() {
+      if (localStorage.getItem('token') == null) {
+        UserApi.login(this.username, this.password)
+          .then(result => {
+            localStorage.setItem('token', result.data.token);
+            this.home()
+          })
+          .catch((err) => {
+            console.log('ERRORE LOGIN: ' + err.response.status)
+          })
+      }
+    },
+    home() {
+      if (localStorage.getItem('token') != null) this.$router.push('/home')
+    }
+  }
 })
 </script>
 

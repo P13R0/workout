@@ -3,6 +3,7 @@ import { IonicVue } from '@ionic/vue';
 import App from './App.vue';
 import router from './utils/router';
 import './utils/registerServiceWorker'
+import axios from 'axios'
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -39,6 +40,19 @@ const app = createApp(App)
   .component('ion-item', IonItem)
   .component('ion-button', IonButton)
   .component('ion-icon', IonIcon);
+
+axios.defaults.baseURL = 'https://workout-manager-back-end.herokuapp.com'
+axios.defaults.headers.Accept = 'application/json'
+
+axios.interceptors.request.use(config => {
+  if (localStorage.getItem('token') != null) {
+    config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`;
+  }
+  return config
+}, error => {
+  console.log(error);
+  return Promise.reject(error)
+});
 
 router.isReady().then(() => {
   app.mount('#app');
