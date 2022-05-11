@@ -41,7 +41,7 @@ const app = createApp(App)
   .component('ion-button', IonButton)
   .component('ion-icon', IonIcon);
 
-axios.defaults.baseURL = 'https://workout-manager-back-end.herokuapp.com'
+axios.defaults.baseURL = 'https://workout-anesin.herokuapp.com'
 axios.defaults.headers.Accept = 'application/json'
 
 axios.interceptors.request.use(config => {
