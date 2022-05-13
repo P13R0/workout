@@ -3,9 +3,11 @@ package it.anesin.workout
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.http.impl.HttpClientConnection.log
 import io.vertx.ext.mongo.MongoClient
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.CorsHandler
 import it.anesin.workout.api.PostLoginApi
 import it.anesin.workout.api.PostTraineesApi
 import it.anesin.workout.api.PostTrainersApi
@@ -41,6 +43,8 @@ class MainVerticle : AbstractVerticle() {
       .errorHandler(403) { context -> log.warn("Unauthorized call received: ${context.request().method()} ${context.request().uri()}") }
       .errorHandler(500) { context -> log.error("Internal Server Error", context.failure()) }
 
+    enableCorsRequests(router)
+
     router.route("/api/login").handler(authProvider.basicAuthenticationHandler())
     router.route("/api/*").handler(authProvider.jwtAuthenticationHandler())
     router.route("/api/trainers/*").handler(authProvider.roleAuthorizationHandler(ADMIN))
@@ -58,6 +62,8 @@ class MainVerticle : AbstractVerticle() {
       .onFailure { log.error("Workout backend server failed to start", it) }
   }
 
+  private fun port(): Int = System.getenv("PORT")?.let { Integer.parseInt(it) } ?: 8085
+
   private fun setAdminUser(users: MongoUsers, authorizations: MongoAuthorizations, username: String, password: String) {
     users.find(username).onSuccess { userAlreadyExist ->
       if (!userAlreadyExist) { users.add(username, password) }
@@ -67,7 +73,24 @@ class MainVerticle : AbstractVerticle() {
     }
   }
 
-  private fun port(): Int = System.getenv("PORT")?.let { Integer.parseInt(it) } ?: 8085
+  private fun enableCorsRequests(router: Router) {
+    val allowedHeaders: MutableSet<String> = HashSet()
+    allowedHeaders.add("x-requested-with")
+    allowedHeaders.add("Access-Control-Allow-Origin")
+    allowedHeaders.add("origin")
+    allowedHeaders.add("Content-Type")
+    allowedHeaders.add("accept")
+    allowedHeaders.add("X-PINGARUNER")
+    allowedHeaders.add("Authorization")
+
+    val allowedMethods: MutableSet<HttpMethod> = HashSet()
+    allowedMethods.add(HttpMethod.GET)
+    allowedMethods.add(HttpMethod.POST)
+    allowedMethods.add(HttpMethod.PUT)
+    allowedMethods.add(HttpMethod.OPTIONS)
+    allowedMethods.add(HttpMethod.DELETE)
+    router.route().handler(CorsHandler.create("*").allowedHeaders(allowedHeaders).allowedMethods(allowedMethods))
+  }
 }
 
 private fun main() {
