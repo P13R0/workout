@@ -1,9 +1,6 @@
 ## Deploy on Netlify
 ```
- npm run build
-```
-```
-netlify deploy --prod
+ npm run build && netlify deploy --prod
 ```
 
 ## Project initialization
