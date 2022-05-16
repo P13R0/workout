@@ -28,9 +28,10 @@
 </template>
 
 <script>
-import {logInOutline} from 'ionicons/icons';
-import {defineComponent} from "vue";
 import UserApi from "@/api/UserApi";
+import { defineComponent } from "vue";
+import { toastController } from '@ionic/vue';
+import { logInOutline, alertCircle } from 'ionicons/icons';
 
 export default defineComponent({
   name: "LoginView",
@@ -50,14 +51,25 @@ export default defineComponent({
             localStorage.setItem('token', result.data.token);
             this.home()
           })
-          .catch((err) => {
-            console.log('ERRORE LOGIN: ' + err.response.status)
-          })
+          .catch((err) => this.errorToast(err.response.status + " : " + err.response.statusText))
       }
     },
     home() {
       if (localStorage.getItem('token') != null) this.$router.push('/home')
-    }
+    },
+    async errorToast(message) {
+      const toast = await toastController
+        .create({
+          header: 'Error',
+          message: message,
+          icon: alertCircle,
+          position: 'top',
+          color: 'danger',
+          duration: 3000
+        })
+
+      await toast.present();
+    },
   }
 })
 </script>
