@@ -35,7 +35,7 @@ import { logInOutline, alertCircle } from 'ionicons/icons';
 
 export default defineComponent({
   name: "LoginView",
-  setup: () => ({logInOutline}),
+  setup: () => ({ logInOutline }),
   data: () => ({
     username: "",
     password: ""

@@ -1,5 +1,4 @@
 import { createApp } from 'vue'
-import { IonicVue } from '@ionic/vue';
 import App from './App.vue';
 import router from './utils/router';
 import './utils/registerServiceWorker'
@@ -16,21 +15,23 @@ import '@ionic/vue/css/text-transformation.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
 
-import { IonPage, IonHeader, IonContent } from '@ionic/vue'
+import { IonicVue, IonPage, IonHeader, IonContent, IonToolbar } from '@ionic/vue'
 import { IonCard, IonCardTitle, IonCardHeader, IonCardContent } from '@ionic/vue'
-import { IonInput, IonLabel, IonItem, IonButton, IonIcon } from '@ionic/vue'
+import { IonTitle, IonInput, IonLabel, IonItem, IonButton, IonIcon } from '@ionic/vue'
 
 const app = createApp(App)
-  .use(IonicVue, { mode: 'ios' })
   .use(router)
+  .use(IonicVue, { mode: 'ios' })
   .component('ion-page', IonPage)
   .component('ion-header', IonHeader)
+  .component('ion-toolbar', IonToolbar)
   .component('ion-content', IonContent)
   .component('ion-card', IonCard)
   .component('ion-card-title', IonCardTitle)
   .component('ion-card-header', IonCardHeader)
   .component('ion-card-content', IonCardContent)
   .component('ion-input', IonInput)
+  .component('ion-title', IonTitle)
   .component('ion-label', IonLabel)
   .component('ion-item', IonItem)
   .component('ion-button', IonButton)

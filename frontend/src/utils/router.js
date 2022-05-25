@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
-import HomeView from '@/views/HomeView.vue';
 import LoginView from '@/views/LoginView.vue';
+import HomeTabs from '@/components/HomeTabs.vue'
 
 const routes = [
   {
@@ -13,9 +13,26 @@ const routes = [
     component: LoginView
   },
   {
-    path: '/home',
-    name: 'home',
-    component: HomeView
+    path: '/home/',
+    component: HomeTabs,
+    children: [
+      {
+        path: '',
+        redirect: '/home/tab1',
+      },
+      {
+        path: 'tab1',
+        component: () => import('@/views/TabOne.vue'),
+      },
+      {
+        path: 'tab2',
+        component: () => import('@/views/TabTwo.vue'),
+      },
+      {
+        path: 'tab3',
+        component: () => import('@/views/TabThree.vue'),
+      }
+    ]
   }
 ]
 
