@@ -4,12 +4,15 @@ import HomeTabs from '@/components/HomeTabs.vue'
 
 const routes = [
   {
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
+  },
+  {
     path: '/',
     redirect: '/login'
   },
   {
     path: '/login',
-    name: 'login',
     component: LoginView
   },
   {
@@ -42,5 +45,17 @@ const router = createRouter({
 })
 
 export default router
+
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/'];
+  const authRequired = !publicPages.includes(to.path);
+  const loggedIn = localStorage.getItem('token');
+
+  if (authRequired && !loggedIn) {
+    return next('/login');
+  }
+
+  next();
+})
 
 
