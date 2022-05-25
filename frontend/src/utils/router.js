@@ -5,10 +5,6 @@ import HomeTabs from '@/components/HomeTabs.vue'
 const routes = [
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/'
-  },
-  {
-    path: '/',
     redirect: '/login'
   },
   {
