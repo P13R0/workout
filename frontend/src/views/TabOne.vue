@@ -8,6 +8,9 @@
           </ion-toolbar>
         </ion-header>
       </ion-tab-bar>
+
+      <ion-button shape="round" @click="logout()">Logout</ion-button>
+
     </ion-content>
   </ion-page>
 </template>
@@ -17,7 +20,12 @@ import { IonTabBar } from '@ionic/vue';
 
 export default {
   name: "TabOne",
-  components: { IonTabBar }
+  components: { IonTabBar },
+  methods: {
+    logout() {
+      localStorage.clear()
+    }
+  }
 }
 </script>
 
