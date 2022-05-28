@@ -1,8 +1,7 @@
 <template>
-  <ion-page>
+  <ion-page id="main-content">
     <ion-content>
       <ion-tab-bar tab="tab1">
-        <div class="ion-page" id="main-content">
         <ion-header translucent>
           <ion-toolbar>
             <ion-buttons slot="start">
@@ -11,9 +10,7 @@
             <ion-title>Tab One</ion-title>
           </ion-toolbar>
         </ion-header>
-        </div>
       </ion-tab-bar>
-
     </ion-content>
   </ion-page>
 </template>
