@@ -1,6 +1,5 @@
 <template>
   <ion-page id="main-content">
-    <ion-content>
       <ion-tab-bar tab="tab2">
         <ion-header translucent>
           <ion-toolbar>
@@ -11,7 +10,6 @@
           </ion-toolbar>
         </ion-header>
       </ion-tab-bar>
-    </ion-content>
   </ion-page>
 </template>
 
