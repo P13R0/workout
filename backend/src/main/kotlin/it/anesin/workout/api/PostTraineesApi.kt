@@ -1,6 +1,8 @@
 package it.anesin.workout.api
 
 import io.vertx.core.Future
+import io.vertx.core.Future.failedFuture
+import io.vertx.core.Future.succeededFuture
 import io.vertx.core.Handler
 import io.vertx.core.http.impl.HttpClientConnection
 import io.vertx.ext.web.Router
@@ -38,18 +40,18 @@ class PostTraineesApi(
 
     users.find(trainee.username)
       .compose { userAlreadyExist ->
-        if (userAlreadyExist) Future.succeededFuture()
-        else { users.add(trainee.username, passwordProvider.random()) }
+        if (userAlreadyExist) succeededFuture()
+        else users.add(trainee.username, passwordProvider.random())
       }
       .compose { authorizations.findRoles(trainee.username) }
       .compose { roles ->
-        if (roles.contains(UserRole.TRAINER)) Future.succeededFuture()
+        if (roles.contains(UserRole.TRAINER)) succeededFuture()
         else { authorizations.addRole(trainee.username, UserRole.TRAINER)}
       }
       .compose { trainees.find(trainee.username) }
       .compose {
         if (it == null) trainees.add(trainee)
-        else Future.failedFuture(HttpException(409))
+        else failedFuture(HttpException(409))
       }
       .onSuccess { context.response().end() }
       .onFailure(context::fail)
