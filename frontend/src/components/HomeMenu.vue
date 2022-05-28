@@ -7,29 +7,9 @@
     </ion-header>
     <ion-content>
       <ion-list>
-        <ion-item>
-          <ion-icon name="mail" slot="start"></ion-icon>
-          <ion-label>Inbox</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-icon name="paper-plane" slot="start"></ion-icon>
-          <ion-label>Outbox</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-icon name="heart" slot="start"></ion-icon>
-          <ion-label>Favorites</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-icon name="archive" slot="start"></ion-icon>
-          <ion-label>Archived</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-icon name="trash" slot="start"></ion-icon>
-          <ion-label>Trash</ion-label>
-        </ion-item>
-        <ion-item>
-          <ion-icon name="warning" slot="start"></ion-icon>
-          <ion-label>Spam</ion-label>
+        <ion-item @click="logout">
+          <ion-icon :icon="logOut" slot="start"></ion-icon>
+          <ion-label>Logout</ion-label>
         </ion-item>
       </ion-list>
     </ion-content>
@@ -39,10 +19,18 @@
 <script>
 import { IonMenu, IonList } from '@ionic/vue';
 import { defineComponent } from 'vue';
+import { logOut } from "ionicons/icons";
 
 export default defineComponent({
   name: "HomeMenu",
-  components: { IonMenu, IonList }
+  setup: () => ({ logOut }),
+  components: { IonMenu, IonList },
+  methods: {
+    logout() {
+      localStorage.clear()
+      this.$router.go('/login');
+    }
+  }
 })
 </script>
 
