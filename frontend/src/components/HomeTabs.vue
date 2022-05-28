@@ -6,8 +6,8 @@
         <ion-router-outlet></ion-router-outlet>
         <ion-tab-bar slot="bottom">
           <ion-tab-button tab="tab1" href="/home/tab1">
-            <ion-icon :icon="triangle" />
-            <ion-label>Tab 1</ion-label>
+            <ion-icon :icon="people" />
+            <ion-label>Trainees</ion-label>
           </ion-tab-button>
           <ion-tab-button tab="tab2" href="/home/tab2">
             <ion-icon :icon="ellipse" />
@@ -26,13 +26,13 @@
 
 <script>
 import { IonTabBar, IonTabButton, IonTabs, IonRouterOutlet } from '@ionic/vue';
-import { ellipse, square, triangle } from 'ionicons/icons';
+import { ellipse, square, people } from 'ionicons/icons';
 import HomeMenu from "@/components/HomeMenu";
 
 export default {
   name: "HomeTabs",
   components: { IonTabs, IonTabBar, IonTabButton, IonRouterOutlet, HomeMenu },
-  setup: () => ({ ellipse, square, triangle })
+  setup: () => ({ ellipse, square, people })
 }
 </script>
 

@@ -7,7 +7,7 @@
             <ion-buttons slot="start">
               <ion-menu-button></ion-menu-button>
             </ion-buttons>
-            <ion-title>Tab One</ion-title>
+            <ion-title>Trainees</ion-title>
           </ion-toolbar>
         </ion-header>
       </ion-tab-bar>
@@ -20,7 +20,7 @@
 import { IonTabBar, IonMenuButton, IonButtons } from '@ionic/vue';
 
 export default {
-  name: "TabOne",
+  name: "TraineesView",
   components: { IonTabBar, IonMenuButton, IonButtons }
 }
 </script>
