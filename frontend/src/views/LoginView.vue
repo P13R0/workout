@@ -10,7 +10,7 @@
             <form @submit.prevent="handleLogin">
               <ion-item>
                 <ion-label position="floating">Username</ion-label>
-                <ion-input v-model="username" required></ion-input>
+                <ion-input v-model="username" type="email" required></ion-input>
               </ion-item>
               <ion-item>
                 <ion-label position="floating">Password</ion-label>
