@@ -13,33 +13,25 @@
     </ion-tab-bar>
 
     <ion-content>
+      <AddTraineeModal/>
+
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button id="add-trainee-button" @click="setOpen(true)"><ion-icon :icon="add"></ion-icon></ion-fab-button>
+        <ion-fab-button id="add-trainee-button"><ion-icon :icon="add"></ion-icon></ion-fab-button>
       </ion-fab>
-
-      <ion-modal :is-open="isOpenRef" canDismiss="true" :presenting-element="$parent.$refs.ionRouterOutlet" @didDismiss="setOpen(false)">
-        <AddTraineeModal/>
-      </ion-modal>
     </ion-content>
-
   </ion-page>
 </template>
 
-
 <script>
-import { IonTabBar, IonMenuButton, IonButtons, IonFab, IonFabButton, IonModal } from '@ionic/vue';
-import { add } from 'ionicons/icons';
-import { defineComponent, ref } from 'vue';
+import { IonTabBar, IonMenuButton, IonButtons, IonFab, IonFabButton} from '@ionic/vue';
 import AddTraineeModal from "@/components/AddTraineeModal";
+import { add } from 'ionicons/icons';
+import { defineComponent } from 'vue';
 
 export default defineComponent ({
   name: "TraineesView",
-  components: { AddTraineeModal, IonTabBar, IonMenuButton, IonButtons, IonFab, IonFabButton, IonModal },
-  setup() {
-    const isOpenRef = ref(false)
-    const setOpen = (state) => isOpenRef.value = state
-    return { isOpenRef, setOpen, add }
-  }
+  components: { AddTraineeModal, IonTabBar, IonMenuButton, IonButtons, IonFab, IonFabButton },
+  setup: () => ({ add })
 })
 </script>
 
