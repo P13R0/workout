@@ -64,7 +64,7 @@ internal class PostTraineesApiTest {
       .statusCode(200)
 
     verify { users.add("aUsername", "aPassword") }
-    verify { authorizations.addRole("aUsername", UserRole.TRAINER) }
+    verify { authorizations.addRole("aUsername", UserRole.TRAINEE) }
     verify { trainees.add(
       Trainee(
         UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c"),
@@ -79,7 +79,7 @@ internal class PostTraineesApiTest {
   internal fun `should return an error if trainer already added`() {
     every { users.find(any()) } returns Future.succeededFuture(true)
     every { users.add(any(), any()) } returns Future.succeededFuture("userId")
-    every { authorizations.findRoles(any()) } returns Future.succeededFuture(listOf(UserRole.TRAINER))
+    every { authorizations.findRoles(any()) } returns Future.succeededFuture(listOf(UserRole.TRAINEE))
     every { authorizations.addRole(any(), any()) } returns Future.succeededFuture("roleId")
     every { trainees.find(any()) } returns Future.succeededFuture(TestFactory.traineeWith(UUID.randomUUID()))
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")

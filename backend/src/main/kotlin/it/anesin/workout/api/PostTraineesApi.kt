@@ -45,8 +45,8 @@ class PostTraineesApi(
       }
       .compose { authorizations.findRoles(trainee.username) }
       .compose { roles ->
-        if (roles.contains(UserRole.TRAINER)) succeededFuture()
-        else { authorizations.addRole(trainee.username, UserRole.TRAINER)}
+        if (roles.contains(UserRole.TRAINEE)) succeededFuture()
+        else { authorizations.addRole(trainee.username, UserRole.TRAINEE)}
       }
       .compose { trainees.find(trainee.username) }
       .compose {
