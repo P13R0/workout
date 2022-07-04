@@ -24,12 +24,28 @@ internal class MongoTraineesTest : MongoDbTest() {
   @Test
   @Timeout(5, unit = TimeUnit.SECONDS)
   internal fun `should add a trainee`(vertx: Vertx, test: VertxTestContext) {
-    val trainee = traineeWith(UUID.randomUUID())
+    val trainee = traineeWith(UUID.randomUUID(), "aName")
 
     mongoTrainees.add(trainee)
       .compose { mongoTrainees.find(trainee.username) }
       .onSuccess {
         assertThat(it).isEqualTo(trainee)
+        test.completeNow()
+      }
+      .onFailure(test::failNow)
+  }
+
+  @Test
+  @Timeout(5, unit = TimeUnit.SECONDS)
+  internal fun `should finds all trainees ordered by name`(vertx: Vertx, test: VertxTestContext) {
+    val traineeOne = traineeWith(UUID.randomUUID(), "Mario")
+    val traineeTwo = traineeWith(UUID.randomUUID(), "Tommaso")
+
+    mongoTrainees.add(traineeTwo)
+      .compose { mongoTrainees.add(traineeOne) }
+      .compose { mongoTrainees.findAll() }
+      .onSuccess {
+        assertThat(it).isEqualTo(listOf(traineeOne, traineeTwo))
         test.completeNow()
       }
       .onFailure(test::failNow)

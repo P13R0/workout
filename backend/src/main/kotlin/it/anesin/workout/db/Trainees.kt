@@ -6,4 +6,5 @@ import it.anesin.workout.domain.Trainee
 interface Trainees {
   fun add(trainee: Trainee): Future<String>
   fun find(username: String): Future<Trainee?>
+  fun findAll(): Future<List<Trainee>>
 }

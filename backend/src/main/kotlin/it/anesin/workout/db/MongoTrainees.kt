@@ -18,4 +18,11 @@ class MongoTrainees(private val mongoClient: MongoClient) : Trainees {
   override fun find(username: String): Future<Trainee?> =
     mongoClient.findOne("trainees", JsonObject().put("username", username), JsonObject())
       .map { it?.mapTo(Trainee::class.java) }
+
+  override fun findAll(): Future<List<Trainee>> =
+    mongoClient.find("trainees", JsonObject())
+      .map { result ->
+        result.map { it.mapTo(Trainee::class.java) }
+          .sortedBy { trainee -> trainee.name }
+      }
 }
