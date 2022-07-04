@@ -81,7 +81,7 @@ internal class PostTraineesApiTest {
     every { users.add(any(), any()) } returns Future.succeededFuture("userId")
     every { authorizations.findRoles(any()) } returns Future.succeededFuture(listOf(UserRole.TRAINEE))
     every { authorizations.addRole(any(), any()) } returns Future.succeededFuture("roleId")
-    every { trainees.find(any()) } returns Future.succeededFuture(TestFactory.traineeWith(UUID.randomUUID()))
+    every { trainees.find(any()) } returns Future.succeededFuture(TestFactory.traineeWith(UUID.randomUUID(), "aName"))
     every { idGenerator.random() } returns UUID.fromString("849c074d-55c9-4344-9dba-193c52ac072c")
     every { dateTimeProvider.now() } returns LocalDateTime.of(2022, 10,20,6,0)
     every { passwordProvider.random() } returns "aPassword"
